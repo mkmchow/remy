@@ -67,21 +67,53 @@ class AudioHandler:
         return self
     
     def list_devices(self):
-        """List available audio devices"""
+        """List available audio devices and print to console"""
         info = self.pyaudio.get_host_api_info_by_index(0)
         num_devices = info.get('deviceCount')
+        
+        # Print header
+        print("\n" + "=" * 50)
+        print("AUDIO DEVICES")
+        print("=" * 50)
+        
+        # Print defaults
+        try:
+            default_output = self.pyaudio.get_default_output_device_info()
+            print(f"DEFAULT OUTPUT: [{default_output['index']}] {default_output['name']}")
+        except:
+            print("DEFAULT OUTPUT: None found")
+            
+        try:
+            default_input = self.pyaudio.get_default_input_device_info()
+            print(f"DEFAULT INPUT:  [{default_input['index']}] {default_input['name']}")
+        except:
+            print("DEFAULT INPUT: None found")
+        
+        print("-" * 50)
         
         devices = []
         for i in range(num_devices):
             device_info = self.pyaudio.get_device_info_by_host_api_device_index(0, i)
-            devices.append({
+            d = {
                 'index': i,
                 'name': device_info.get('name'),
                 'max_input_channels': device_info.get('maxInputChannels'),
                 'max_output_channels': device_info.get('maxOutputChannels'),
                 'default_sample_rate': device_info.get('defaultSampleRate')
-            })
+            }
+            devices.append(d)
             
+            # Print each device
+            in_ch = d['max_input_channels']
+            out_ch = d['max_output_channels']
+            types = []
+            if in_ch > 0:
+                types.append(f"IN:{in_ch}ch")
+            if out_ch > 0:
+                types.append(f"OUT:{out_ch}ch")
+            print(f"  [{i}] {d['name']} ({', '.join(types)})")
+        
+        print("=" * 50 + "\n")
         return devices
     
     def get_default_input_device(self) -> int:

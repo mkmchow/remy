@@ -4,19 +4,15 @@ Configuration for Remy AI Desk Companion
 import os
 
 # Coze API Credentials
-# Get these from your Coze dashboard: https://www.coze.cn
-# You can set via environment variables or replace the defaults below
 COZE_ACCESS_TOKEN = os.environ.get(
     "COZE_ACCESS_TOKEN",
-    "YOUR_ACCESS_TOKEN_HERE"  # Replace with your token
+    "pat_dQJ3NLdWOJni3IZ9FOqpPL2eWpFlxm8LGP8DVSwzt7HtCiFX2HQsvaRCHGD0wpIW"
 )
-COZE_BOT_ID = os.environ.get(
-    "COZE_BOT_ID", 
-    "YOUR_BOT_ID_HERE"  # Replace with your bot ID
-)
+COZE_BOT_ID = os.environ.get("COZE_BOT_ID", "7592923986669928486")
 
-# Coze WebSocket endpoint (Chinese server)
-COZE_WS_URL = f"wss://ws.coze.cn/v1/chat?bot_id={COZE_BOT_ID}"
+# Coze WebSocket endpoint
+# Use ws.coze.cn for China, ws.coze.com for international
+COZE_WS_URL = f"wss://ws.coze.com/v1/chat?bot_id={COZE_BOT_ID}"
 
 # Audio Settings
 AUDIO_SAMPLE_RATE = 24000  # Coze default
@@ -31,8 +27,8 @@ OUTPUT_CHANNELS = 1
 
 # VAD Settings
 VAD_MODE = "server_vad"  # server_vad for free conversation, client_interrupt for push-to-talk
-VAD_SILENCE_DURATION_MS = 500  # How long silence before considering speech ended
-VAD_PREFIX_PADDING_MS = 600  # Audio to include before speech detected
+VAD_SILENCE_DURATION_MS = 800  # How long silence before considering speech ended (increased to reduce false triggers)
+VAD_PREFIX_PADDING_MS = 300  # Audio to include before speech detected (reduced to avoid noise)
 
 # UI Settings (3.5" Raspberry Pi display: 480x320 pixels)
 WINDOW_WIDTH = 480

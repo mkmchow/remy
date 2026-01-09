@@ -91,6 +91,8 @@ class RemyCompanion:
         
         def on_state_change(state: str):
             """Handle conversation state changes"""
+            import time
+            
             state_map = {
                 "idle": EyeState.IDLE,
                 "listening": EyeState.LISTENING,
@@ -99,6 +101,10 @@ class RemyCompanion:
             }
             eye_state = state_map.get(state, EyeState.IDLE)
             self.ui.set_state(eye_state)
+            
+            # Track when AI stops speaking (for echo prevention grace period)
+            if state == "idle":
+                self._ai_stopped_time = time.time()
             
             # Clear audio queue when interrupted
             if state == "listening" and self.audio:
@@ -126,11 +132,23 @@ class RemyCompanion:
     def _on_audio_chunk(self, audio_data: bytes):
         """Handle microphone audio chunk"""
         if self.is_ready and self.coze:
-            # Send to Coze
-            self.coze.send_audio(audio_data)
+            # Get current audio level
+            level = self.input_level_monitor.update(audio_data)
             
-            # Update input level for visualization (optional)
-            self.input_level_monitor.update(audio_data)
+            # ECHO PREVENTION with INTERRUPTION support:
+            # While AI is speaking, only send audio if it's LOUD (user intentionally interrupting)
+            # Echo from speakers is typically quieter than direct speech into the mic
+            if self.coze.is_ai_speaking:
+                # High threshold - user must speak clearly to interrupt
+                # Adjust this value if needed: higher = harder to interrupt, less echo
+                INTERRUPT_THRESHOLD = 0.3  
+                if level > INTERRUPT_THRESHOLD:
+                    self.coze.send_audio(audio_data)
+                    # Note: Interruption detected - audio queue will be cleared by state change
+                # else: skip this audio chunk (likely just echo)
+            else:
+                # AI not speaking - send all audio normally
+                self.coze.send_audio(audio_data)
     
     def init(self):
         """Initialize all components"""
@@ -150,12 +168,8 @@ class RemyCompanion:
         self.audio = AudioHandler()
         self.audio.on_debug(lambda msg: self.log(msg))
         
-        # List available audio devices
-        devices = self.audio.list_devices()
-        input_devices = [d for d in devices if d['max_input_channels'] > 0]
-        output_devices = [d for d in devices if d['max_output_channels'] > 0]
-        
-        self.log(f"Found {len(input_devices)} input, {len(output_devices)} output devices")
+        # List available audio devices (prints to console)
+        self.audio.list_devices()
         
         # Start audio
         self.audio.start(self._on_audio_chunk)
