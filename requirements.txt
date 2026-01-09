@@ -1,0 +1,20 @@
+# Coze Real-time Voice AI Companion
+# Core dependencies
+
+# WebSocket client
+websocket-client==1.7.0
+
+# Audio processing
+pyaudio==0.2.14
+numpy==1.26.4
+
+# UI - Pygame for animated eyes
+pygame==2.5.2
+
+# Environment management
+python-dotenv==1.0.0
+
+# Note: Uses built-in modules for:
+# - queue, threading (audio buffering)
+# - base64, json (WebSocket protocol)
+# - asyncio is not needed - using threaded websocket-client
